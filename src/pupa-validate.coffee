@@ -5,7 +5,6 @@ path = require 'path'
 
 _ = require 'underscore'
 async = require 'async'
-# @see https://github.com/visionmedia/commander.js
 cli = require('cli').enable('status')
 request = require 'request'
 JSONStream = require 'JSONStream'
