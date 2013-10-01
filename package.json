@@ -25,6 +25,6 @@
   "engines": {
     "node": "*"
   },
-  "prepublish": "echo \"#!/usr/bin/env coffee\" coffee --bare --print src/pupa-validate.coffee > bin/pupa-validate",
+  "prepublish": "echo \"#!/usr/bin/env node\" > bin/pupa-validate && coffee --bare --print src/pupa-validate.coffee >> bin/pupa-validate && chmod +x bin/pupa-validate",
   "license": "MIT"
 }

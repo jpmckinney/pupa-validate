@@ -9,7 +9,7 @@ async = require 'async'
 cli = require('cli').enable('status')
 request = require 'request'
 JSONStream = require 'JSONStream'
-JSV = require('./lib/jsv').JSV
+JSV = require('jsv').JSV
 
 # Maps "_type" values of JSON documents to JSON Schema URLs.
 type_url_map = {}
@@ -84,6 +84,7 @@ finish = ->
   process.exit()
 
 # Configure the option parser.
+cli.setUsage('pupa-validate [OPTIONS] [TYPE URI ...]')
 cli.width = 100
 cli.option_width = 30
 cli.parse
