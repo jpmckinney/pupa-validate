@@ -19,5 +19,12 @@
   },
   "repository": "git://github.com/opennorth/pupa-validate",
   "main": "index",
+  "bin": {
+    "pupa-validate": "./bin/pupa-validate"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "prepublish": "echo \"#!/usr/bin/env coffee\" coffee --bare --print src/pupa-validate.coffee > bin/pupa-validate",
   "license": "MIT"
 }
