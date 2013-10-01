@@ -14,7 +14,7 @@ Read JSON documents from a different directory:
 
     pupa-validate --output_dir /tmp/scraped_data
 
-Read JSON documents from a Redis database:
+Read JSON documents from a Redis database (the `redis` package must be available):
 
     pupa-validate --output_dir redis://127.0.0.1:6379/0
 
