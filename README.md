@@ -1,6 +1,6 @@
-# Pupa Validate
+# pupa-validate
 
-Validates Pupa JSON documents against JSON Schema.
+Validates JSON documents dumped by Pupa against JSON Schema.
 
 ## Usage
 

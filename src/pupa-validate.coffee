@@ -99,7 +99,7 @@ cli.main (args, options) ->
   report.start = new Date()
   report.plan =
     options: options
-    arguments: args.shift()
+    arguments: args
 
   type_url_map[args.shift()] = args.shift() while args.length
 

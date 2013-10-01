@@ -1,6 +1,6 @@
 {
   "name": "pupa-validate",
-  "description": "Validates Pupa JSON documents against JSON Schema",
+  "description": "Validates JSON documents dumped by Pupa against JSON Schema",
   "version": "0.0.1",
   "author": "James McKinney <james@opennorth.ca>",
   "dependencies": {
@@ -18,13 +18,13 @@
     "redis": "~0.8.5"
   },
   "repository": "git://github.com/opennorth/pupa-validate",
-  "main": "index",
+  "main": "index.js",
   "bin": {
     "pupa-validate": "./bin/pupa-validate"
   },
   "engines": {
     "node": "*"
   },
-  "prepublish": "echo \"#!/usr/bin/env node\" > bin/pupa-validate && coffee --bare --print src/pupa-validate.coffee >> bin/pupa-validate && chmod +x bin/pupa-validate",
+  "prepublish": "echo '#!/usr/bin/env node' > bin/pupa-validate && node_modules/.bin/coffee --print src/pupa-validate.coffee >> bin/pupa-validate && chmod +x bin/pupa-validate",
   "license": "MIT"
 }

@@ -1,0 +1,183 @@
+#!/usr/bin/env node
+var JSONStream, JSV, async, cli, default_schema, env, finish, fs, get_references, path, register_schemas, report, request, type_url_map, url_json_map, url_schema_map, validate, _,
+  __hasProp = {}.hasOwnProperty;
+
+fs = require('fs');
+
+path = require('path');
+
+_ = require('underscore');
+
+async = require('async');
+
+cli = require('cli').enable('status');
+
+request = require('request');
+
+JSONStream = require('JSONStream');
+
+JSV = require('jsv').JSV;
+
+type_url_map = {};
+
+url_json_map = {};
+
+url_schema_map = {};
+
+report = {};
+
+env = JSV.createEnvironment();
+
+env.setOption('defaultSchemaURI', 'http://json-schema.org/draft-03/schema#');
+
+default_schema = env.getDefaultSchema();
+
+get_references = function(schema) {
+  var key, references, value;
+  references = [];
+  if (Object.prototype.toString.call(schema) === '[object Object]') {
+    for (key in schema) {
+      if (!__hasProp.call(schema, key)) continue;
+      value = schema[key];
+      if (value.$ref && !(value.$ref in url_json_map) && value.$ref[0] !== '#') {
+        references.push(value.$ref);
+      }
+      references = references.concat(get_references(value));
+    }
+  }
+  return references;
+};
+
+register_schemas = function(urls, callback) {
+  var queue;
+  queue = [];
+  urls.forEach(function(url) {
+    return queue.push(function(notify) {
+      var parser;
+      cli.info("GET " + url);
+      parser = JSONStream.parse();
+      parser.on('data', function(data) {
+        url_json_map[url] = data;
+        url_schema_map[url] = env.createSchema(data, default_schema, url);
+        return notify(null);
+      });
+      return request(url).pipe(parser);
+    });
+  });
+  return async.parallel(queue, function() {
+    var argument, url, _i, _len;
+    argument = [];
+    for (_i = 0, _len = urls.length; _i < _len; _i++) {
+      url = urls[_i];
+      argument = argument.concat(get_references(url_json_map[url]));
+    }
+    if (argument.length) {
+      return register_schemas(_.uniq(argument), callback);
+    } else {
+      return callback();
+    }
+  });
+};
+
+validate = function(data) {
+  var errors, instance_json, schema, type, url;
+  instance_json = JSON.parse(data);
+  type = instance_json._type;
+  if (type) {
+    url = type_url_map[type];
+    if (url) {
+      schema = url_schema_map[url];
+      if (schema) {
+        errors = schema.validate(instance_json).errors;
+        if (errors.length) {
+          return cli.error(JSON.stringify(errors));
+        }
+      } else {
+        return cli.error("No schema for " + url);
+      }
+    } else {
+      return cli.error("No URL for " + type);
+    }
+  } else {
+    return cli.error("No _type for " + data);
+  }
+};
+
+finish = function() {
+  report.end = new Date();
+  report.time = (report.end.getTime() - report.start.getTime()) / 1000.0;
+  cli.info(JSON.stringify(report));
+  return process.exit();
+};
+
+cli.setUsage('pupa-validate [OPTIONS] [TYPE URI ...]');
+
+cli.width = 100;
+
+cli.option_width = 30;
+
+cli.parse({
+  output_dir: ['o', 'The directory or Redis address (e.g. redis://localhost:6379/0) from which to read JSON documents', 'string', path.join(process.cwd(), 'scraped_data')]
+});
+
+cli.main(function(args, options) {
+  var type, url;
+  report.start = new Date();
+  report.plan = {
+    options: options,
+    "arguments": args
+  };
+  while (args.length) {
+    type_url_map[args.shift()] = args.shift();
+  }
+  return register_schemas((function() {
+    var _results;
+    _results = [];
+    for (type in type_url_map) {
+      if (!__hasProp.call(type_url_map, type)) continue;
+      url = type_url_map[type];
+      _results.push(url);
+    }
+    return _results;
+  })(), function() {
+    var client, glob, matches, redis;
+    matches = options.output_dir.match(/^redis:\/\/([^\/:]+)?(?::(\d+))?(?:\/(\d+))?$/);
+    if (matches) {
+      redis = require('redis');
+      if (matches[1] == null) {
+        matches[1] = '127.0.0.1';
+      }
+      if (matches[2] == null) {
+        matches[2] = '6379';
+      }
+      if (matches[3] == null) {
+        matches[3] = '0';
+      }
+      client = redis.createClient(matches[2], matches[1]);
+      return client.select(matches[3], function() {
+        return client.keys('*', function($, keys) {
+          return client.mget(keys, function($, documents) {
+            var document, _i, _len;
+            for (_i = 0, _len = documents.length; _i < _len; _i++) {
+              document = documents[_i];
+              validate(document);
+            }
+            return finish();
+          });
+        });
+      });
+    } else {
+      glob = require('glob');
+      return glob('*.json', {
+        cwd: options.output_dir
+      }, function($, files) {
+        var file, _i, _len;
+        for (_i = 0, _len = files.length; _i < _len; _i++) {
+          file = files[_i];
+          validate(fs.readFileSync(path.join(options.output_dir, file)));
+        }
+        return finish();
+      });
+    }
+  });
+});
