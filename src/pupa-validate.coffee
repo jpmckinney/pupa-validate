@@ -3,7 +3,7 @@
 fs = require 'fs'
 path = require 'path'
 
-_ = require 'underscore'
+uniq = require 'lodash.uniq'
 async = require 'async'
 cli = require('cli').enable('status')
 request = require 'request'
@@ -53,7 +53,7 @@ register_schemas = (urls, callback) ->
     for url in urls
       argument = argument.concat(get_references(url_json_map[url]))
     if argument.length
-      register_schemas(_.uniq(argument), callback)
+      register_schemas(uniq(argument), callback)
     else # We're at depth.
       callback()
 
