@@ -1,7 +1,7 @@
 {
   "name": "pupa-validate",
   "description": "Validates JSON documents dumped by Pupa against JSON Schema",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "James McKinney <james@opennorth.ca>",
   "dependencies": {
     "JSONStream": "~0.7.1",
