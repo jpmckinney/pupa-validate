@@ -1,6 +1,8 @@
 # pupa-validate
 
-Validates JSON documents dumped by Pupa against JSON Schema.
+Validates multiple JSON documents on disk or in Redis against JSON Schema.
+
+You may use this package to validate documents created by [Pupa.rb](https://github.com/opennorth/pupa-ruby).
 
 ## Usage
 

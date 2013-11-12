@@ -1,149 +1,137 @@
 #!/usr/bin/env node
-var JSONStream, JSV, async, cli, default_schema, env, finish, fs, get_references, path, register_schemas, report, request, type_url_map, url_json_map, url_schema_map, validate, _,
-  __hasProp = {}.hasOwnProperty;
 
-fs = require('fs');
+var fs = require('fs')
+  , path = require('path');
 
-path = require('path');
+var uniq = require('lodash.uniq')
+  , async = require('async')
+  , cli = require('cli').enable('status')
+  , request = require('request')
+  , JSONStream = require('JSONStream')
+  , JSV = require('jsv').JSV;
 
-_ = require('underscore');
+// Maps "_type" values of JSON documents to JSON Schema URLs.
+var type_url_map = {};
+// Maps URLs to parsed JSON representations of JSON Schema.
+var url_json_map = {};
+// Maps URLs to JSV JSONSchema objects.
+var url_schema_map = {};
 
-async = require('async');
-
-cli = require('cli').enable('status');
-
-request = require('request');
-
-JSONStream = require('JSONStream');
-
-JSV = require('jsv').JSV;
-
-type_url_map = {};
-
-url_json_map = {};
-
-url_schema_map = {};
-
-report = {};
-
-env = JSV.createEnvironment();
-
+var env = JSV.createEnvironment(); // "strict" is slower
 env.setOption('defaultSchemaURI', 'http://json-schema.org/draft-03/schema#');
+var default_schema = env.getDefaultSchema();
 
-default_schema = env.getDefaultSchema();
-
-get_references = function(schema) {
-  var key, references, value;
-  references = [];
-  if (Object.prototype.toString.call(schema) === '[object Object]') {
-    for (key in schema) {
-      if (!__hasProp.call(schema, key)) continue;
-      value = schema[key];
-      if (value.$ref && !(value.$ref in url_json_map) && value.$ref[0] !== '#') {
-        references.push(value.$ref);
+// Returns all non-local references within a schema that have not yet been resolved.
+var get_references = function(json) {
+  var key, value, references = [];
+  if (Object.prototype.toString.call(json) === '[object Object]') {
+    for (key in json) {
+      if (json.hasOwnProperty(key)) {
+        value = json[key];
+        if (value.$ref && !(value.$ref in url_json_map) && value.$ref[0] !== '#') {
+          references.push(value.$ref);
+        }
+        references = references.concat(get_references(value));
       }
-      references = references.concat(get_references(value));
     }
   }
   return references;
 };
 
-register_schemas = function(urls, callback) {
-  var queue;
-  queue = [];
+// Registers schemas with JSV.
+var register_schemas = function(urls, callback) {
+  // Queue the HTTP requests to send in parallel.
+  var queue = [];
   urls.forEach(function(url) {
-    return queue.push(function(notify) {
-      var parser;
-      cli.info("GET " + url);
-      parser = JSONStream.parse();
-      parser.on('data', function(data) {
-        url_json_map[url] = data;
-        url_schema_map[url] = env.createSchema(data, default_schema, url);
-        return notify(null);
+    queue.push(function(notify) {
+      var parser = JSONStream.parse();
+      parser.on('data', function(json) {
+        url_json_map[url] = json;
+        url_schema_map[url] = env.createSchema(json, default_schema, url);
+        notify(null); // notify async that the process is done
       });
-      return request(url).pipe(parser);
+      cli.info("GET " + url);
+      request(url).pipe(parser);
     });
   });
-  return async.parallel(queue, function() {
-    var argument, url, _i, _len;
-    argument = [];
+
+  // Breadth-first search the schemas for references.
+  async.parallel(queue, function() {
+    var _i, _len, argument = [];
     for (_i = 0, _len = urls.length; _i < _len; _i++) {
-      url = urls[_i];
-      argument = argument.concat(get_references(url_json_map[url]));
+      argument = argument.concat(get_references(url_json_map[urls[_i]]));
     }
     if (argument.length) {
-      return register_schemas(_.uniq(argument), callback);
-    } else {
-      return callback();
+      register_schemas(uniq(argument), callback);
+    }
+    else { // We're at maximum depth.
+      callback();
     }
   });
 };
 
-validate = function(data) {
-  var errors, instance_json, schema, type, url;
-  instance_json = JSON.parse(data);
-  type = instance_json._type;
+var validate = function(data) {
+  var instance_json = JSON.parse(data);
+  var type = instance_json._type;
   if (type) {
-    url = type_url_map[type];
+    var url = type_url_map[type];
     if (url) {
-      schema = url_schema_map[url];
+      var schema = url_schema_map[url];
       if (schema) {
-        errors = schema.validate(instance_json).errors;
+        var errors = schema.validate(instance_json).errors;
         if (errors.length) {
-          return cli.error(JSON.stringify(errors));
+          cli.error(JSON.stringify(errors));
         }
-      } else {
-        return cli.error("No schema for " + url);
       }
-    } else {
-      return cli.error("No URL for " + type);
+      else {
+        cli.error("No schema for " + url);
+      }
     }
-  } else {
-    return cli.error("No _type for " + data);
+    else {
+      cli.error("No URL for " + type);
+    }
+  }
+  else {
+    cli.error("No _type for " + data);
   }
 };
 
-finish = function() {
+// Finish and print the report.
+var finish = function() {
   report.end = new Date();
   report.time = (report.end.getTime() - report.start.getTime()) / 1000.0;
   cli.info(JSON.stringify(report));
-  return process.exit();
+  process.exit();
 };
 
+// Configure the option parser.
 cli.setUsage('pupa-validate [OPTIONS] [TYPE URI ...]');
-
 cli.width = 100;
-
 cli.option_width = 30;
-
 cli.parse({
   output_dir: ['o', 'The directory or Redis address (e.g. redis://localhost:6379/0) from which to read JSON documents', 'string', path.join(process.cwd(), 'scraped_data')]
 });
 
+var report = {};
+
 cli.main(function(args, options) {
-  var type, url;
   report.start = new Date();
   report.plan = {
     options: options,
-    "arguments": args
+    arguments: args
   };
-  while (args.length) {
-    type_url_map[args.shift()] = args.shift();
+
+  var _i, _len, urls = [];
+  for (_i = 0, _len = args.length; _i < _len; _i += 2) {
+    type_url_map[args[_i]] = args[_i + 1];
+    urls.push(args[_i + 1]);
   }
-  return register_schemas((function() {
-    var _results;
-    _results = [];
-    for (type in type_url_map) {
-      if (!__hasProp.call(type_url_map, type)) continue;
-      url = type_url_map[type];
-      _results.push(url);
-    }
-    return _results;
-  })(), function() {
-    var client, glob, matches, redis;
-    matches = options.output_dir.match(/^redis:\/\/([^\/:]+)?(?::(\d+))?(?:\/(\d+))?$/);
+
+  register_schemas(urls, function() {
+    var matches = options.output_dir.match(/^redis:\/\/([^\/:]+)?(?::(\d+))?(?:\/(\d+))?$/);
     if (matches) {
-      redis = require('redis');
+      var redis = require('redis');
+
       if (matches[1] == null) {
         matches[1] = '127.0.0.1';
       }
@@ -153,30 +141,33 @@ cli.main(function(args, options) {
       if (matches[3] == null) {
         matches[3] = '0';
       }
-      client = redis.createClient(matches[2], matches[1]);
-      return client.select(matches[3], function() {
-        return client.keys('*', function($, keys) {
-          return client.mget(keys, function($, documents) {
-            var document, _i, _len;
+
+      var client = redis.createClient(matches[2], matches[1]);
+
+      client.select(matches[3], function() {
+        client.keys('*', function($, keys) {
+          client.mget(keys, function($, documents) {
+            var _i, _len;
             for (_i = 0, _len = documents.length; _i < _len; _i++) {
-              document = documents[_i];
-              validate(document);
+              validate(documents[_i]);
             }
-            return finish();
+            finish();
           });
         });
       });
-    } else {
-      glob = require('glob');
-      return glob('*.json', {
+    }
+    else {
+      var glob = require('glob');
+
+      // The asynchronous version runs slower and requires graceful-fs.
+      glob('*.json', {
         cwd: options.output_dir
       }, function($, files) {
-        var file, _i, _len;
+        var _i, _len;
         for (_i = 0, _len = files.length; _i < _len; _i++) {
-          file = files[_i];
-          validate(fs.readFileSync(path.join(options.output_dir, file)));
+          validate(fs.readFileSync(path.join(options.output_dir, files[_i])));
         }
-        return finish();
+        finish();
       });
     }
   });

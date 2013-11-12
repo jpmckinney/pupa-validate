@@ -13,7 +13,6 @@
     "JSV": "~4.0.2"
   },
   "devDependencies": {
-    "coffee-script": "~1.6.3",
     "redis": "~0.8.5"
   },
   "repository": "git://github.com/opennorth/pupa-validate",
@@ -24,6 +23,5 @@
   "engines": {
     "node": "*"
   },
-  "prepublish": "echo '#!/usr/bin/env node' > bin/pupa-validate && node_modules/.bin/coffee --print src/pupa-validate.coffee >> bin/pupa-validate && chmod +x bin/pupa-validate",
   "license": "MIT"
 }
