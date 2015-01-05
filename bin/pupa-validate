@@ -109,7 +109,7 @@ cli.setUsage('pupa-validate [OPTIONS] [TYPE URI ...]');
 cli.width = 100;
 cli.option_width = 30;
 cli.parse({
-  output_dir: ['o', 'The directory or Redis address (e.g. redis://localhost:6379/0) from which to read JSON documents', 'string', path.join(process.cwd(), 'scraped_data')]
+  output_dir: ['o', 'The directory or Redis address (e.g. redis://localhost:6379/0) from which to read JSON documents', 'string', path.join(process.cwd(), '_data')]
 });
 
 var report = {};
