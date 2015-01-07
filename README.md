@@ -1,5 +1,8 @@
 # pupa-validate
 
+[![NPM version](https://badge.fury.io/js/pupa-validate.svg)](http://badge.fury.io/js/pupa-validate)
+[![Dependency Status](https://david-dm.org/jpmckinney/pupa-validate.svg)](https://david-dm.org/jpmckinney/pupa-validate)
+
 Validates multiple JSON documents on disk or in Redis against JSON Schema.
 
 You may use this package to validate documents created by [Pupa.rb](https://github.com/opennorth/pupa-ruby).
@@ -29,8 +32,4 @@ Validate JSON documents whose `_type` is `organization` against `http://popolopr
 * [Pupa.rb](https://github.com/opennorth/pupa-ruby), a Ruby data scraping framework
 * [Pupa](https://github.com/opencivicdata/pupa), the original Python data scraping framework
 
-## Bugs? Questions?
-
-This project's main repository is on GitHub: [http://github.com/opennorth/pupa-validate](http://github.com/opennorth/pupa-validate), where your contributions, forks, bug reports, feature requests, and feedback are greatly welcomed.
-
-Copyright (c) 2013 Open North Inc., released under the MIT license
+Copyright (c) 2013 James McKinney, released under the MIT license

@@ -1,8 +1,18 @@
 {
   "name": "pupa-validate",
-  "description": "Validates JSON documents dumped by Pupa against JSON Schema",
   "version": "0.0.3",
-  "author": "James McKinney <james@opennorth.ca>",
+  "description": "Validates JSON documents dumped by Pupa against JSON Schema",
+  "keywords": ["json", "schema"],
+  "homepage": "https://github.com/jpmckinney/pupa-validate",
+  "bugs": "https://github.com/jpmckinney/pupa-validate/issues",
+  "license": "MIT",
+  "author": "James McKinney",
+  "main": "./lib/pupa-validate",
+  "bin": "./bin/pupa-validate",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpmckinney/pupa-validate.git"
+  },
   "dependencies": {
     "JSONStream": "~0.7.1",
     "async": "~0.2.9",
@@ -15,13 +25,7 @@
   "devDependencies": {
     "redis": "~0.8.5"
   },
-  "repository": "git://github.com/opennorth/pupa-validate",
-  "main": "index.js",
-  "bin": {
-    "pupa-validate": "./bin/pupa-validate"
-  },
   "engines": {
-    "node": "*"
-  },
-  "license": "MIT"
+    "node": ">=0.6.0"
+  }
 }
