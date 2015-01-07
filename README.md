@@ -5,7 +5,7 @@
 
 Validates multiple JSON documents on disk or in Redis against JSON Schema.
 
-You may use this package to validate documents created by [Pupa.rb](https://github.com/opennorth/pupa-ruby).
+You may use this package to validate documents created by [Pupa.rb](https://github.com/jpmckinney/pupa-ruby).
 
 ## Usage
 
@@ -29,7 +29,7 @@ Validate JSON documents whose `_type` is `organization` against `http://popolopr
 
 ## See Also
 
-* [Pupa.rb](https://github.com/opennorth/pupa-ruby), a Ruby data scraping framework
+* [Pupa.rb](https://github.com/jpmckinney/pupa-ruby), a Ruby data scraping framework
 * [Pupa](https://github.com/opencivicdata/pupa), the original Python data scraping framework
 
 Copyright (c) 2013 James McKinney, released under the MIT license
