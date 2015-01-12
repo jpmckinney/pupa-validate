@@ -17,6 +17,7 @@ var messages = [
   'GET http://www.popoloproject.com/schemas/group_result.json#',
   'GET http://www.popoloproject.com/schemas/count.json#',
   'GET http://www.popoloproject.com/schemas/speech.json#',
+  /No _type for \{/,
   function (message) {
     var json = JSON.parse(message);
     assert.ok('uri' in json[0]);
@@ -29,6 +30,7 @@ var messages = [
     }]);
   },
   /^No _type for \{/,
+  'No URL for invalid',
 ];
 
 function log(message) {
