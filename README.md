@@ -29,6 +29,10 @@ Validate JSON documents whose `_type` is `organization` against `http://popolopr
 
     pupa-validate organization http://www.popoloproject.com/schemas/organization.json#
 
+## Testing
+
+**DO NOT** run this module's tests if you are using Redis database number 15 on `localhost`!
+
 ## See Also
 
 * [Pupa.rb](https://github.com/jpmckinney/pupa-ruby), a Ruby data scraping framework

@@ -3,7 +3,10 @@ node_js:
   - "0.11"
   - "0.10"
 install:
+  - npm install redis
   - npm install
 after_script:
   # @see https://github.com/cainus/node-coveralls#istanbul
   - istanbul cover test/test.js --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+services:
+  - redis

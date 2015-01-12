@@ -1,4 +1,8 @@
 var assert = require('assert')
+  , fs = require('fs')
+  , path = require('path')
+  , glob = require('glob')
+  , redis = require('redis')
   , validator = require('../lib/pupa-validate')();
 
 var messages = [
@@ -17,6 +21,8 @@ var messages = [
   'GET http://www.popoloproject.com/schemas/group_result.json#',
   'GET http://www.popoloproject.com/schemas/count.json#',
   'GET http://www.popoloproject.com/schemas/speech.json#',
+
+  // Filesystem
   /No _type for \{/,
   function (message) {
     var json = JSON.parse(message);
@@ -31,9 +37,26 @@ var messages = [
   },
   /^No _type for \{/,
   'No URL for invalid',
+
+  // Redis
+  /No _type for \{/,
+  function (message) {
+    var json = JSON.parse(message);
+    assert.ok('uri' in json[0]);
+    delete json[0].uri;
+    assert.deepEqual(json, [{
+      'schemaUri': 'http://www.popoloproject.com/schemas/organization.json#/properties/id'
+    , 'attribute': 'type'
+    , 'message': 'Instance is not a required type'
+    , 'details': ['string', 'null']
+    }]);
+  },
+  /No _type for \{/,
+  'No URL for invalid',
 ];
 
 function log(message) {
+  // process.stdout.write('"' + message + '"\n');
   var expected = messages.shift();
   if (!expected || typeof expected === 'string') {
     assert.equal(message, expected);
@@ -47,9 +70,27 @@ function log(message) {
 }
 
 var args = ['organization', 'http://www.popoloproject.com/schemas/organization.json#']
-  , options = {output_dir: 'test/fixtures'}
+  , directory = 'test/fixtures'
   , logger = {info: log, error: log};
 
-validator(args, options, logger, function () {
-  assert.equal(messages.length, 0);
+validator(args, {output_dir: directory}, logger, function () {
+  var client = redis.createClient(6379, '127.0.0.1');
+
+  client.select(15, function (err, res) {
+    client.flushall(function (err, res) {
+      glob('*.json', {cwd: directory}, function ($, files) {
+        var array = [];
+        files.forEach(function (file) {
+          array.push(file, fs.readFileSync(path.join(directory, file)));
+        });
+
+        client.mset(array, function (err, res) {
+          client.quit();
+          validator(args, {output_dir: 'redis://127.0.0.1:6379/15'}, logger, function () {
+            assert.equal(messages.length, 0);
+          });
+        });
+      });
+    });
+  });
 });
