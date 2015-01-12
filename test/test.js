@@ -17,13 +17,7 @@ var messages = [
   'GET http://www.popoloproject.com/schemas/group_result.json#',
   'GET http://www.popoloproject.com/schemas/count.json#',
   'GET http://www.popoloproject.com/schemas/speech.json#',
-];
-
-function log(message) {
-  if (messages.length) {
-    assert.equal(message, messages.shift());
-  }
-  else {
+  function (message) {
     var json = JSON.parse(message);
     assert.ok('uri' in json[0]);
     delete json[0].uri;
@@ -33,6 +27,20 @@ function log(message) {
     , 'message': 'Instance is not a required type'
     , 'details': ['string', 'null']
     }]);
+  },
+  /^No _type for \{/,
+];
+
+function log(message) {
+  var expected = messages.shift();
+  if (!expected || typeof expected === 'string') {
+    assert.equal(message, expected);
+  }
+  else if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+    assert.ok(expected.test(message));
+  }
+  else {
+    expected(message);
   }
 }
 
