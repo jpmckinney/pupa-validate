@@ -1,7 +1,7 @@
 # pupa-validate
 
-[![NPM version](https://badge.fury.io/js/pupa-validate.svg)](http://badge.fury.io/js/pupa-validate)
-[![Build Status](https://secure.travis-ci.org/jpmckinney/pupa-validate.png)](http://travis-ci.org/jpmckinney/pupa-validate)
+[![NPM version](https://badge.fury.io/js/pupa-validate.svg)](https://badge.fury.io/js/pupa-validate)
+[![Build Status](https://secure.travis-ci.org/jpmckinney/pupa-validate.png)](https://travis-ci.org/jpmckinney/pupa-validate)
 [![Dependency Status](https://david-dm.org/jpmckinney/pupa-validate.svg)](https://david-dm.org/jpmckinney/pupa-validate)
 [![Coverage Status](https://coveralls.io/repos/jpmckinney/pupa-validate/badge.png)](https://coveralls.io/r/jpmckinney/pupa-validate)
 
