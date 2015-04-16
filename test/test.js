@@ -18,6 +18,7 @@ var messages = [
   'GET http://www.popoloproject.com/schemas/vote_event.json#',
   'GET http://www.popoloproject.com/schemas/vote.json#',
   'GET http://www.popoloproject.com/schemas/person.json#',
+  'GET http://www.popoloproject.com/schemas/event.json#',
   'GET http://www.popoloproject.com/schemas/group_result.json#',
   'GET http://www.popoloproject.com/schemas/count.json#',
   'GET http://www.popoloproject.com/schemas/speech.json#',
